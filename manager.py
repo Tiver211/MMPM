@@ -140,7 +140,14 @@ class Manager:
 
         modpack.delete_from_json()
 
+
 def get_next_log_file():
+    if not os.path.isdir('logs'):
+        os.mkdir('logs')
+
+    if not os.listdir('logs'):
+        return 'logs\\log1.log'
+
     i = 1
     while True:
         file = Path(f"logs\\log{i}.log")
