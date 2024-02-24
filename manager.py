@@ -1,11 +1,20 @@
 import os
 import shutil
 import logging as lg
+from pick import pick
+import json
 
 
 class NotFile(Exception):
     def __init__(self, message: str):
         self.message = message  # Сообщение об ошибке
+        lg.error(f'NotFile: {message}')
+
+
+class PathTooMPNotFound(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        lg.error(f'PathTooMPNotFound: {message}')
 
 
 class Path(str):
@@ -28,33 +37,89 @@ class Path(str):
     def directory(self) -> str:
         # Возвращает путь к файлу, но без самого файла
         parts = self.parts()
-        return "/".join(parts[:-1])
+        if "." in parts[-1]:
+            return "/".join(parts[:-1])
+
+        else:
+            return "/".join(parts)
 
     def change_directory(self, new_directory: str) -> str:
         # Изменяет директорию файла, но оставляет имя таким же
         parts = self.parts()
         return "/".join([new_directory] + parts[-1:])
 
+    def __add__(self, path):
+        return self.directory() + "/" + path
+
 
 class MP:
-    def __init__(self, name: str, version: str, mods: list, tags: list = None, path: Path = None):
+    def __init__(self, name: str,
+                 version: str,
+                 path: Path,
+                 tags: list = None):
         self.name = name
+        if os.path.isdir(path):
+            self.path = path
+
+        else:
+            raise PathTooMPNotFound(f'path {path} not found')
+
         self.version = version
-        self.mods = mods
+        self.mods = os.listdir(path)
+
         self.tags = tags
-        self.path = path
+        lg.info(f'MP created: {self.name}, version: {self.version}, path: {self.path}')
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return self.name, self.version, self.mods, self.tags, self.path
+        return f'MP({self.name}, {self.version}, {self.mods}, {self.tags}, {self.path})'
 
     def __iter__(self):
         return self.mods
 
     def __len__(self):
         return len(self.mods)
+
+    def save_to_json(self, file="MP.json"):
+        data = {}
+        if os.path.exists(file):
+            with open(file, 'r') as f:
+                data = json.load(f)
+
+        data[self.name] = {
+            "version": self.version,
+            "path": self.path,
+            "mods": self.mods,
+            "tags": self.tags
+        }
+
+        with open(file, 'w') as f:
+            json.dump(data, f)
+
+
+class Manager:
+    def __init__(self, mps: list, minecraft_path: Path = Path('C:\\Users\\qwert\\AppData\\Roaming\\.minecraft')):
+        self.MPs = mps
+        self.md = str(minecraft_path)+"\\"+"mods"
+
+    def add_mp(self, modpack):
+        self.MPs.append(modpack)
+
+    def change_mp(self, modpack: MP):
+        self.clear()
+
+        if modpack not in self.MPs:
+            self.add_mp(modpack)
+
+        for mod in os.listdir(modpack.path):
+            mod = Path(modpack.path + "\\" + mod)
+            shutil.copy(mod, mod.change_directory(self.md))
+
+    def clear(self):
+        shutil.rmtree(self.md)
+        os.mkdir(self.md)
 
 
 def get_next_log_file():
@@ -72,3 +137,6 @@ lg.basicConfig(filename=filename, level=lg.INFO)
 
 lg.info("This is a log message.")
 
+if __name__ == "__main__":
+    mp = MP('test', '1', Path("MP/create_pack1"))
+    print(mp.mods)
