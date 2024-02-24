@@ -57,11 +57,9 @@ class MP:
                  path: Path,
                  tags: list = None):
         self.name = name
-        if os.path.isdir(path):
-            self.path = path
-
-        else:
-            raise PathTooMPNotFound(f'path {path} not found')
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        self.path = path
 
         self.version = version
         self.mods = os.listdir(path)
@@ -82,6 +80,10 @@ class MP:
         return len(self.mods)
 
     def save_to_json(self, file="MP.json"):
+        if not os.path.isfile(file):
+            with open(file, 'w+') as f:
+                json.dump({}, f)
+
         data = {}
         if os.path.exists(file):
             with open(file, 'r') as f:
@@ -106,6 +108,8 @@ class MP:
 
         with open(file, 'w') as f:
             json.dump(data, f)
+
+        shutil.rmtree(self.path)
 
 
 class Manager:

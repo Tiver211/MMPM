@@ -37,6 +37,9 @@ class CreateWindow(tkinter.Toplevel):
         self.button.pack()
 
     def create_mod_pack(self):
+        if not os.path.isdir('MP'):
+            os.mkdir('MP')
+
         if not os.path.isdir(f"MP/{self.name_input.get()}"):
             os.mkdir(f"MP/{self.name_input.get()}")
 
@@ -120,7 +123,7 @@ class App:
     def update_listbox(self):
         self.listbox.delete(0, tk.END)
         for mp in self.manager.MPs:
-            self.listbox.insert(tk.END, str(mp.name) + "  tags: " + ",".join(mp.tags))
+            self.listbox.insert(tk.END, str(mp.name) + "  tags: " + ", ".join(mp.tags))
             for tag in mp.tags:
                 if tag is not None and tag is not "":
                     if tag not in self.mps:
@@ -145,6 +148,11 @@ class App:
 
 
 def load_mps_from_json(filename):
+    if not os.path.exists(filename):
+        with open(filename, 'w+') as f:
+            json.dump({}, f)
+        return []
+
     with open(filename, 'r') as f:
         data = json.load(f)
 
