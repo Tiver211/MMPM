@@ -1,8 +1,7 @@
+import json
+import logging as lg
 import os
 import shutil
-import logging as lg
-from pick import pick
-import json
 
 
 class NotFile(Exception):
@@ -98,6 +97,16 @@ class MP:
         with open(file, 'w') as f:
             json.dump(data, f)
 
+    def delete_from_json(self, file="MP.json"):
+        if os.path.exists(file):
+            with open(file, 'r') as f:
+                data = json.load(f)
+
+        del data[self.name]
+
+        with open(file, 'w') as f:
+            json.dump(data, f)
+
 
 class Manager:
     def __init__(self, mps: list, minecraft_path: Path = Path('C:\\Users\\qwert\\AppData\\Roaming\\.minecraft')):
@@ -121,6 +130,11 @@ class Manager:
         shutil.rmtree(self.md)
         os.mkdir(self.md)
 
+    def delete_mp(self, modpack: MP):
+        if modpack in self.MPs:
+            self.MPs.remove(modpack)
+
+        modpack.delete_from_json()
 
 def get_next_log_file():
     i = 1
