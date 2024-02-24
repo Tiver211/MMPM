@@ -1,3 +1,4 @@
+import configparser
 import json
 import os.path
 import tkinter
@@ -164,6 +165,41 @@ def load_mps_from_json(filename):
     return mps
 
 
-manager = Manager(load_mps_from_json('MP.json'))  # Здесь должен быть ваш список ModPacks
-app = App(manager)
-app.run()
+class Setuper:
+    def __init__(self):
+        self.config = configparser.ConfigParser()
+        self.root = tk.Tk()
+        self.root.title("setuper")
+
+        self.label_minecraft = tk.Label(self.root, text="enter minecraft folder")
+        self.label_minecraft.pack()
+
+        self.entry_minecraft = tk.Entry(self.root)
+        self.entry_minecraft.insert(tk.END, f'C:\\Users\\{os.getlogin()}\\AppData\\Roaming\\.minecraft')
+        self.entry_minecraft.pack()
+
+        self.button = tk.Button(self.root, text="confirm", command=self.confirm)
+
+    def run(self):
+        self.root.mainloop()
+
+    def confirm(self):
+        self.config['settings'] = {'minecraft': str(self.entry_minecraft.get())}
+        with open('settings.ini', "w") as f:
+            self.config.write(f)
+
+        self.root.destroy()
+
+
+def settings_reader():
+    file = 'settings.ini'
+    if not os.path.isfile(file):
+        setuper = Setuper
+        setuper.run()
+
+
+if __name__ == "__main__":
+    settings = settings_reader()
+    manager = Manager(load_mps_from_json('MP.json'))  # Здесь должен быть ваш список ModPacks
+    app = App(manager)
+    app.run()
