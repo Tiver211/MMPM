@@ -113,9 +113,9 @@ class MP:
 
 
 class Manager:
-    def __init__(self, mps: list, minecraft_path: Path = Path('C:\\Users\\qwert\\AppData\\Roaming\\.minecraft')):
+    def __init__(self, mps: list, minecraft_path='C:\\Users\\qwert\\AppData\\Roaming\\.minecraft'):
         self.MPs = mps
-        self.md = str(minecraft_path)+"\\"+"mods"
+        self.md = minecraft_path + "\\" + "mods"
 
     def add_mp(self, modpack):
         self.MPs.append(modpack)

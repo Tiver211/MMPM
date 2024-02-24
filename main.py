@@ -87,7 +87,14 @@ class App:
         self.mps = {}
         self.combobox['values'] = (*self.combobox['values'], '')
 
+        self.setup = tk.Button(self.root, text="Setup", command=self.setup)
+        self.setup.pack()
+
         self.update_listbox()
+
+    def setup(self):
+        setuper = Setuper()
+        setuper.root.grab_set()
 
     def delete(self):
         selection = self.listbox.curselection()
@@ -126,12 +133,12 @@ class App:
         for mp in self.manager.MPs:
             self.listbox.insert(tk.END, str(mp.name) + "  tags: " + ", ".join(mp.tags))
             for tag in mp.tags:
-                if tag is not None and tag is not "":
+                if tag is not None and tag != "":
                     if tag not in self.mps:
                         self.combobox['values'] = (*self.combobox['values'], tag)
                         self.mps[tag] = []
 
-                    if not mp in self.mps[tag]:
+                    if mp not in self.mps[tag]:
                         self.mps[tag].append(mp)
 
         print(self.mps)
@@ -174,11 +181,12 @@ class Setuper:
         self.label_minecraft = tk.Label(self.root, text="enter minecraft folder")
         self.label_minecraft.pack()
 
-        self.entry_minecraft = tk.Entry(self.root)
+        self.entry_minecraft = tk.Entry(self.root, width=50)
         self.entry_minecraft.insert(tk.END, f'C:\\Users\\{os.getlogin()}\\AppData\\Roaming\\.minecraft')
         self.entry_minecraft.pack()
 
         self.button = tk.Button(self.root, text="confirm", command=self.confirm)
+        self.button.pack()
 
     def run(self):
         self.root.mainloop()
@@ -194,12 +202,19 @@ class Setuper:
 def settings_reader():
     file = 'settings.ini'
     if not os.path.isfile(file):
-        setuper = Setuper
+        setuper = Setuper()
         setuper.run()
+        if not os.path.isfile(file):
+            return 'error'
+
+    config = configparser.ConfigParser()
+    config.read(file)
+    return {'minecraft': config['settings']['minecraft']}
 
 
 if __name__ == "__main__":
     settings = settings_reader()
-    manager = Manager(load_mps_from_json('MP.json'))  # Здесь должен быть ваш список ModPacks
-    app = App(manager)
-    app.run()
+    if not settings == 'error':
+        manager = Manager(load_mps_from_json('MP.json'), minecraft_path=str(settings['minecraft']))
+        app = App(manager)
+        app.run()
