@@ -160,8 +160,6 @@ filename = get_next_log_file()
 
 lg.basicConfig(filename=filename, level=lg.INFO)
 
-lg.info("This is a log message.")
-
 if __name__ == "__main__":
     mp = MP('test', '1', Path("MP/create_pack1"))
     print(mp.mods)
