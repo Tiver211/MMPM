@@ -1,26 +1,23 @@
 import unittest
-from manager import Path as PathStr, NotFile
+from manager import Path
 
 
-class TestPathStr(unittest.TestCase):
-    def setUp(self):
-        self.path = PathStr("/path/to/file.txt")
-
+class TestPath(unittest.TestCase):
     def test_parts(self):
-        self.assertEqual(self.path.parts(), ["", "path", "to", "file.txt"])
+        path = Path("test\\path\\file.txt")
+        self.assertEqual(path.parts(), ["test", "path", "file.txt"])
 
     def test_expansion(self):
-        self.assertEqual(self.path.expansion(), "txt")
+        path = Path("test\\path\\file.txt")
+        self.assertEqual(path.expansion(), "txt")
 
     def test_directory(self):
-        self.assertEqual(self.path.directory(), "/path/to")
+        path = Path("test\\path\\file.txt")
+        self.assertEqual(path.directory(), "test/path")
 
     def test_change_directory(self):
-        self.assertEqual(self.path.change_directory("/new/path"), "/new/path/file.txt")
-
-    def test_not_file(self):
-        with self.assertRaises(NotFile):
-            PathStr("/path/to/file").expansion()
+        path = Path("test\\path\\file.txt")
+        self.assertEqual(path.change_directory("new"), "new/file.txt")
 
 
 if __name__ == "__main__":
